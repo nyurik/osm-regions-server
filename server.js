@@ -3,12 +3,14 @@
 const compression = require(`compression`);
 const { SparqlService, PostgresService, directQueries } = require(`osm-regions/src`);
 const app = require(`express`)();
-const secrets = require(`./secrets`);
 const topojson = require(`topojson`);
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 
-const port = 9978;
+const port = process.env.OSMREGIONS_PORT;
 // const rdfServerUrl = `https://sophox.org/bigdata/sparql`;
-const rdfService = `https://sophox.org/bigdata/namespace/wdq/sparql`;
+const rdfService = `https://${process.env.RDF_HOST}:${process.env.RDF_PORT}/sparql`;
 
 // app.use(function (req, resp, next) {
 //   resp.header(`Access-Control-Allow-Origin`, `*`);
@@ -33,11 +35,11 @@ const sparqlService = new SparqlService({
 
 const postgresService = new PostgresService({
   queries: directQueries,
-  host: secrets.host,
-  port: secrets.port,
-  database: secrets.database,
-  user: secrets.user,
-  password: secrets.password,
+  host: process.env.POSTGRES_HOST,
+  port: process.env.POSTGRES_PORT,
+  database: process.env.POSTGRES_DB,
+  user: process.env.POSTGRES_USER,
+  password: process.env.POSTGRES_PASSWORD,
 });
 
 app.listen(port, err => {
@@ -164,7 +166,8 @@ async function processQueryRequest(req, resp) {
     qres = await sparqlService.query(sparql, `id`);
     ids = Object.keys(qres);
   }
-  const pres = await postgresService.query(secrets.table, ids, postgresOpts);
+  const table = process.env.OSMREGIONS_TABLE ? process.env.OSMREGIONS_TABLE : 'planet_osm_polygon';
+  const pres = await postgresService.query(table, ids, postgresOpts);
   let result = PostgresService.toGeoJSON(pres, qres);
   const originalSize = result.length;
 

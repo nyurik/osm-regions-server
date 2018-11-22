@@ -8,6 +8,7 @@
   "repository": "nyurik/osm-regions-server",
   "dependencies": {
     "compression": "^1.7.1",
+    "dotenv": "^6.0.0",
     "express": "^4.16.2",
     "osm-regions": "nyurik/osm-regions",
     "topojson": "^3.0.2"
